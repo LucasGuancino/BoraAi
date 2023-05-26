@@ -28,3 +28,13 @@ model carona{
 
   @@map("carona")
 }
+
+model veiculo{
+  id             Int      @id @default(autoincrement())
+  user           User     @relation(fields: [userId],references: [id])
+  nome_veiculo   String
+  placa_veiculo  String
+  desc_veiculo   String
+
+  @@map("veiculo")   
+}
