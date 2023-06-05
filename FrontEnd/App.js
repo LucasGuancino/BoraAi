@@ -7,7 +7,6 @@ import Avaliacao from './src/Avaliacao';
 export default function App() {
   return (
     <SafeAreaView style={styles.container}>
-      <PainelCarona/>
       <StatusBar style="auto" />
       <Footer />
     </SafeAreaView>
