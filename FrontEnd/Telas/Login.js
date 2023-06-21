@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import Axios from '../Comps/Axios';
 
 const logo = require("../icons/Veiculo.png");
 
@@ -9,10 +10,24 @@ const LoginScreen = () => {
   const [senha, setSenha] = useState('');
   const navigation = useNavigation();
 
-  const handleLogin = () => {
-    // Lógica para realizar o login
-    navigation.navigate('HomeCaroneiro')
+  const handleLogin = async () => {
+    try {
+      const response = await Axios.post('/user/login', {
+        email: email,
+        senha: senha
+      });
+      if (response.data.error) {
+        alert(response.data.error);
+      } else {
+        console.log(response.data); 
+        alert("Login bem sucedido!")
+        navigation.navigate('HomeCaroneiro');
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
+  
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
@@ -38,7 +53,7 @@ const LoginScreen = () => {
         <Text style={styles.buttonText}>LOGAR</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate('Cadastrar')}>
-      <Text style={styles.footerText}>Não possui cadastro? Faça o cadastro</Text>
+        <Text style={styles.footerText}>Não possui cadastro? Faça o cadastro</Text>
       </TouchableOpacity>
     </KeyboardAvoidingView>
   );
@@ -85,7 +100,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontWeight: 'bold',
   },
-    title: {
+  title: {
     fontSize: 30,
     fontWeight: 'bold',
     marginBottom: 20,

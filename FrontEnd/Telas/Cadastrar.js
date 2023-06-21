@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState} from 'react';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, StyleSheet, Image, Platform, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import * as ImagePicker from 'expo-image-picker';
-import * as MediaLibrary from 'expo-media-library';
+import Axios from '../Comps/Axios';
 
 const logo = require("../icons/Veiculo.png");
-const importicon = require("../icons/importar.png");
 
 const CadastroScreen = () => {
   const [nome, setNome] = useState('');
@@ -13,59 +11,40 @@ const CadastroScreen = () => {
   const [telefone, setTelefone] = useState('');
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
-  const [fotoPerfil, setFotoPerfil] = useState(null);
   const navigation = useNavigation();
 
-  useEffect(() => {
-    solicitarPermissaoGaleria();
-  }, []);
-
-  const solicitarPermissaoGaleria = async () => {
-    const { status } = await MediaLibrary.getPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        'Permissão necessária',
-        'Este aplicativo gostaria de acessar sua galeria de fotos.',
-        [
-          {
-            text: 'Cancelar',
-            style: 'cancel',
-          },
-          {
-            text: 'Conceder',
-            onPress: async () => {
-              const { status: newStatus } = await MediaLibrary.requestPermissionsAsync();
-              if (newStatus === 'granted') {
-                // Permissão concedida, você pode prosseguir com a lógica desejada
-              } else {
-                Alert.alert(
-                  'Permissão negada',
-                  'Não foi possível acessar a galeria de fotos.',
-                );
-              }
-            },
-          },
-        ],
-      );
-    }
-  };
-
   const handleCadastro = () => {
-    // Lógica para realizar o cadastro
-  };
-
-  const selecionarFotoPerfil = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (!result.cancelled) {
-      setFotoPerfil(result.uri);
+    if (senha !== confirmarSenha) {
+      Alert.alert('Erro', 'As senhas não coincidem.');
+      return;
     }
-  };
+    if(nome !== '' && email !== '' && telefone !== '' && senha !== '' & confirmarSenha !== ''){
+      const usuario = {
+        nome: nome,
+        telefone: telefone,
+        email: email,
+        senha: senha,
+        confirmarSenha: confirmarSenha,
+      };
+    
+      Axios.post("/user/cadastro", usuario)
+        .then((response) => {
+          alert("Usuário cadastrado com sucesso!");
+          navigation.goBack();
+        })
+        .catch((error) => {
+          alert("Erro ao cadastrar usuário!");
+        });
+        setNome('');
+        setEmail('');
+        setTelefone('');
+        setSenha('');
+        setConfirmarSenha('');
+    }else {
+      alert("Preencha todos os dados!");
+    };
+
+  };  
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
@@ -73,12 +52,6 @@ const CadastroScreen = () => {
         <Image source={logo} style={styles.logo} />
       </View>
       <Text style={styles.title}>Cadastro</Text>
-
-      <TouchableOpacity style={styles.importButton} onPress={selecionarFotoPerfil}>
-        <Image source={importicon} style={styles.importIcon} />
-        <Text style={styles.importText}>Importar foto de perfil</Text>
-      </TouchableOpacity>
-
       <TextInput
         style={styles.input}
         placeholder="Nome Completo"
