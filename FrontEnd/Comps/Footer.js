@@ -1,20 +1,22 @@
 import React from "react";
 import { StyleSheet, TouchableOpacity, View, Image } from "react-native";
+import { useNavigation } from '@react-navigation/native';
 
-const homeIcon = require("../icons/Home.png");
+const homeIcon = require("../icons/HomeFooter.png");
 const PrincipalIcon = require("../icons/Principal.png");
 const userIcon = require("../icons/Perfil.png");
 
 const Footer = () => {
+  const navigation = useNavigation();
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={[styles.button, styles.leftButton]}>
+      <TouchableOpacity style={[styles.button, styles.leftButton]} onPress={() => navigation.navigate('HomeCarona')}>
         <Image source={homeIcon} style={styles.buttonImage} />
       </TouchableOpacity>
-      <TouchableOpacity style={[styles.button, styles.centerButton]}>
+      <TouchableOpacity style={[styles.button, styles.centerButton]}onPress={() => navigation.navigate('CentralDeCaronas')}>
         <Image source={PrincipalIcon} style={styles.buttonImage} />
       </TouchableOpacity>
-      <TouchableOpacity style={[styles.button, styles.rightButton]}>
+      <TouchableOpacity style={[styles.button, styles.rightButton]}onPress={() => navigation.navigate('Perfil')}>
         <Image source={userIcon} style={styles.buttonImage} />
       </TouchableOpacity>
     </View>

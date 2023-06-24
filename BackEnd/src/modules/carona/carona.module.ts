@@ -4,7 +4,7 @@ import { CaronaService } from './carona.service';
 import { PrismaService } from 'src/database/PrismaService';
 
 @Module({
-    controllers: [CaronaController],
-    providers: [CaronaService,PrismaService]
+  controllers: [CaronaController],
+  providers: [CaronaService, PrismaService],
 })
-export class CaronaModule{}
+export class CaronaModule {}

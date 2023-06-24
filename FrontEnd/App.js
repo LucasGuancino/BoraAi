@@ -1,20 +1,14 @@
-import { StatusBar, SafeAreaView, StyleSheet, Text } from 'react-native';
-import Footer from "./Comps/Footer"
 import React from 'react';
-import PainelCarona from './src/PainelCarona';
-import Avaliacao from './src/Avaliacao';
+import {View} from "react-native";
+import Navegador from './Comps/Navegator';
 
-export default function App() {
+
+function App() {
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="auto" />
-      <Footer />
-    </SafeAreaView>
+    <View style={{ flex: 1 }}>
+      <Navegador />
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
+export default App;
