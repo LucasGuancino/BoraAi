@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Axios from '../Comps/Axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const logo = require("../icons/Veiculo.png");
 
@@ -19,16 +20,16 @@ const LoginScreen = () => {
       if (response.data.error) {
         alert(response.data.error);
       } else {
-        console.log(response.data); 
+        const { user } = response.data;
+        await AsyncStorage.setItem('user', JSON.stringify(user));
         alert("Login bem sucedido!")
         navigation.navigate('HomeCaroneiro');
       }
     } catch (error) {
       console.error(error);
     }
-  };
+  };  
   
-
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <View style={styles.logoContainer}>

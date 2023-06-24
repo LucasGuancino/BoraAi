@@ -1,13 +1,51 @@
-import React from "react";
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from "react-native";
 import Footer from "../Comps/Footer";
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const Foto = require("../icons/foto.png");
 const logoIcon = require("../icons/Home.png");
 
 const HomeCaroneiro = () => {
   const navigation = useNavigation();
+  const [userName, setUserName] = useState('');
+  const [idUser, setIdUser] = useState('');
+  const [Avaliacao, setAvaliacao] = useState('');
+
+  const getUserData = async () => {
+    try {
+      const userString = await AsyncStorage.getItem('user');
+      if (userString) {
+        const user = JSON.parse(userString);
+        return user;
+      }
+      return null;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }; 
+  
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const userData = await getUserData();
+      if (userData) {
+        setUserName(userData.nome);
+        setIdUser(user.id);
+      } else {
+        alert("Usuário não encontrado.");
+      }
+    };
+  
+    fetchUserData();
+  }, []);  
+
+  useEffect(() => {
+    
+  });
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.content}>
@@ -18,7 +56,7 @@ const HomeCaroneiro = () => {
           </View>
         </TouchableOpacity>
         <View style={styles.item}>
-          <Text style={styles.item1}>Olá Mara</Text>
+          <Text style={styles.item1}>Olá {userName}!</Text>
           <Text style={styles.descriptionText}>Vamos levar alguém para a UTFPR hoje?</Text>
         </View>
         <Image source={logoIcon} style={styles.logo} />
