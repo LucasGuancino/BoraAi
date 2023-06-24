@@ -1,16 +1,68 @@
-import React from "react";
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from "react-native";
 import Footer from "../Comps/Footer";
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Axios from "../Comps/Axios";
 
 const Foto = require("../icons/foto.png");
 const logoIcon = require("../icons/HomeCarona.png");
 
 const HomeCarona = () => {
   const navigation = useNavigation();
+  const [userName, setUserName] = useState('');
+  const [idUser, setIdUser] = useState('');
+
+  const getUserData = async () => {
+    try {
+      const userString = await AsyncStorage.getItem('user');
+      if (userString) {
+        const user = JSON.parse(userString);
+        return user;
+      }
+      return null;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }; 
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const userData = await getUserData();
+      if (userData) {
+        setUserName(userData.nome);
+        setIdUser(userData.id);
+      } else {
+        alert("Usuário não encontrado.");
+      }
+    };
+    
+    fetchUserData();
+  }, [idUser]);
+
+  const IrPaginaCaroneiro = async () => {
+      if (idUser) {
+        const url = "/veiculo/id";
+        const updatedUrl = url.replace("id", idUser);
+  
+        try {
+          const response = await Axios.get(updatedUrl);
+          if(response.data){
+            navigation.navigate('HomeCaroneiro');
+          }else{
+            alert("Este usuário não possui veículos cadastrados. Você sera redirecionado para a tela de Cadastro de Veiculo");
+            navigation.navigate('CadastrarVeiculo');
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      }
+  }; 
+  
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate('HomeCaroneiro')}>
+      <TouchableOpacity style={styles.profileButton} onPress={IrPaginaCaroneiro}>
         <Image style={styles.avatar} source={Foto} />
         <View style={styles.nameContainer}>
           <Text style={styles.name}>Ver painel do caroneiro</Text>
@@ -19,18 +71,13 @@ const HomeCarona = () => {
       <View style={styles.contentContainer}>
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.item}>
-            <Text style={styles.item1}>Olá Luana</Text>
+            <Text style={styles.item1}>Olá {userName}</Text>
             <Text style={styles.descriptionText}>Em busca de uma carona para a UTFPR?</Text>
           </View>
           <Image source={logoIcon} style={styles.logo} />
-          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Procurar')}>
+          <TouchableOpacity style={styles.button}>
             <Text style={styles.buttonText}>Procurar</Text>
           </TouchableOpacity>
-          <Text style={styles.ultimasCaronasText}>Últimas caronas</Text>
-          <View style={styles.userContainer}>
-            <Image style={styles.userFoto} source={Foto} />
-            <Text style={styles.userName}>Neymar Jr</Text>
-          </View>
         </ScrollView>
       </View>
       <Footer />
@@ -113,25 +160,6 @@ const styles = StyleSheet.create({
   descriptionText: {
     fontWeight: "bold",
     fontSize: 14,
-  },
-  ultimasCaronasText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginTop: 20,
-  },
-  userContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 10,
-  },
-  userFoto: {
-    width: 25,
-    height: 25,
-    borderRadius: 12.5,
-    marginRight: 10,
-  },
-  userName: {
-    fontSize: 16,
   },
 });
 

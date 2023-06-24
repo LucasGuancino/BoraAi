@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Image, TextInput, StyleSheet } from 'react-native';
 import Footer from '../Comps/Footer';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Axios from "../Comps/Axios";
 
 const Foto = require("../icons/foto.png");
 const imgCarona = require("../icons/Carona.png");
@@ -10,10 +12,63 @@ const CriarCaronaScreen = ({ navigation }) => {
   const [horarioSaida, setHorarioSaida] = useState('');
   const [horarioChegada, setHorarioChegada] = useState('');
   const [metodoPagamento, setMetodoPagamento] = useState('');
+  const [idUser, setIdUser] = useState('');
+ 
+  const getUserData = async () => {
+    try {
+      const userString = await AsyncStorage.getItem('user');
+      if (userString) {
+        const user = JSON.parse(userString);
+        return user;
+      }
+      return null;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }; 
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const userData = await getUserData();
+      if (userData) {
+        setIdUser(userData.id);
+      } else {
+        alert("Usuário não encontrado.");
+      }
+    };
+    
+    fetchUserData();
+  }, [idUser]);
 
   const confirmarDestino = () => {
-    // Lógica para confirmar o destino da carona
-  };
+    if(origem !== '' && horarioSaida !== '' && horarioChegada !== '' && metodoPagamento !== ''){
+      const carona = {
+        userIdCarona: idUser,
+        end_origem: origem,
+        hr_saida: horarioSaida,
+        hr_chegada: horarioChegada,
+        met_pagamento: metodoPagamento,
+        ST_carona: "Ativa",
+      };
+    
+      Axios.post("/Carona", carona)
+        .then((response) => {
+          alert("Carona criada com sucesso!");
+          navigation.goBack();
+        })
+        .catch((error) => {
+          alert(error.response.data.message);
+        });
+        setOrigem('');
+        setHorarioSaida('');
+        setHorarioChegada('');
+        setMetodoPagamento('');
+    }else {
+      alert("Preencha todos os dados!");
+    };
+
+  };  
 
   return (
     <View style={styles.container}>

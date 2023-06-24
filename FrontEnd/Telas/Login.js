@@ -23,7 +23,7 @@ const LoginScreen = () => {
         const { user } = response.data;
         await AsyncStorage.setItem('user', JSON.stringify(user));
         alert("Login bem sucedido!")
-        navigation.navigate('HomeCaroneiro');
+        navigation.navigate('HomeCarona');
       }
     } catch (error) {
       console.error(error);

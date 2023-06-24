@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from "rea
 import Footer from "../Comps/Footer";
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Axios from "../Comps/Axios";
 
 
 const Foto = require("../icons/foto.png");
@@ -13,6 +14,7 @@ const HomeCaroneiro = () => {
   const [userName, setUserName] = useState('');
   const [idUser, setIdUser] = useState('');
   const [Avaliacao, setAvaliacao] = useState('');
+  const [histCaronas, setHistCaronas] = useState('');
 
   const getUserData = async () => {
     try {
@@ -33,19 +35,47 @@ const HomeCaroneiro = () => {
       const userData = await getUserData();
       if (userData) {
         setUserName(userData.nome);
-        setIdUser(user.id);
+        setIdUser(userData.id);
       } else {
         alert("Usuário não encontrado.");
       }
     };
   
-    fetchUserData();
-  }, []);  
+    const fetchAvaliacaoData = async () => {
+      if (idUser) {
+        const url = "/avaliacao/media/id";
+        const updatedUrl = url.replace("id", idUser);
+  
+        try {
+          const response = await Axios.get(updatedUrl);
+          setAvaliacao(response.data.mediaAvaliacoes);
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    };
 
-  useEffect(() => {
+    const fetchCaronasData = async () =>{
+      if (idUser) {
+        const url = "/hist-caronas/user/id";
+        const updatedUrl = url.replace("id", idUser);
+        try {
+          const response = await Axios.get(updatedUrl);
+          const data = response.data;
+          const primeiraCarona = data[0]; 
+          const caronasFornecidas = primeiraCarona.caronasFornecidas;
+          setHistCaronas(caronasFornecidas);
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    }
     
-  });
-
+    fetchUserData();
+    fetchAvaliacaoData();
+    fetchCaronasData();
+  }, [idUser]);
+  
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.content}>
@@ -69,12 +99,12 @@ const HomeCaroneiro = () => {
         <View style={styles.imageContainer}>
           <Image source={require("../icons/Caronas.png")} style={styles.CaronaIcon} />
           <Text style={styles.caronasText}>Caronas</Text>
-          <Text style={styles.countText}>00</Text>
+          <Text style={styles.countText}>{histCaronas}</Text>
         </View>
         <View style={styles.imageContainer}>
           <Image source={require("../icons/Estrela.png")} style={styles.EstrelaIcon} />
           <Text style={styles.caronasText}>Avaliação</Text>
-          <Text style={styles.countText}>00</Text>
+          <Text style={styles.countText}>{Avaliacao}</Text>
         </View>
       </View>
       <Footer />

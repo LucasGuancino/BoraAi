@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Axios from "../Comps/Axios";
 
 const logo = require("../icons/Veiculo.png");
 
@@ -8,10 +10,60 @@ const CadastroScreen = () => {
   const [nome, setNome] = useState('');
   const [placa, setPlaca] = useState('');
   const [descricao, setDescricao] = useState('');
-  const navigation = useNavigation();
+  const [idUser, setIdUser] = useState('');
+  const navigation = useNavigation();  
+
+  const getUserData = async () => {
+    try {
+      const userString = await AsyncStorage.getItem('user');
+      if (userString) {
+        const user = JSON.parse(userString);
+        return user;
+      }
+      return null;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }; 
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const userData = await getUserData();
+      if (userData) {
+        setIdUser(userData.id);
+      } else {
+        alert("Usuário não encontrado.");
+      }
+    };
+    
+    fetchUserData();
+  }, [idUser]);
 
   const handleCadastro = () => {
-    // Lógica para realizar o cadastro
+    if (nome !== '' && placa !== '' && descricao !== '') {
+      const veiculo = {
+        userId: idUser,
+        nomeDoVeiculo: nome,
+        placa: placa,
+        DescVeiculo: descricao,
+      };
+
+      Axios.post("/veiculo", veiculo)
+        .then((response) => {
+          alert("Veiculo cadastrado com sucesso!");
+          navigation.goBack();
+        })
+        .catch((error) => {
+          alert("Erro ao cadastrar veiculo!");
+        });
+      setNome('');
+      setPlaca('');
+      setDescricao('');
+    } else {
+      alert("Preencha todos os dados!");
+    };
+
   };
 
   return (

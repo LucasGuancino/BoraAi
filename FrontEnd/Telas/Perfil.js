@@ -1,32 +1,93 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import Footer from "../Comps/Footer";
 import { useNavigation } from '@react-navigation/native';
+import Axios from '../Comps/Axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Perfil = () => {
-  const [nome, setNome] = useState("Luana de Souza");
-  const [caronasPegas, setCaronasPegas] = useState("20");
-  const [caronasFornecidas, setCaronasFornecidas] = useState("0");
-  const [avaliacao, setAvaliacao] = useState("5.0");
+  const [nome, setUserName] = useState("");
+  const [idUser, setIdUser] = useState('');
+  const [caronasPegas, setCaronasPegas] = useState("");
+  const [caronasFornecidas, setCaronasFornecidas] = useState("");
+  const [avaliacao, setAvaliacao] = useState("");
   const navigation = useNavigation();
 
-  const handleSair = () => {
-    navigation.navigate('Inicial');
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('user');
+      alert("Usuário Deslogado com sucesso.");
+      navigation.navigate('Inicial');
+    } catch (error) {
+      console.error(error);
+    }
   };
+
+  const getUserData = async () => {
+    try {
+      const userString = await AsyncStorage.getItem('user');
+      if (userString) {
+        const user = JSON.parse(userString);
+        return user;
+      }
+      return null;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }; 
+  
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const userData = await getUserData();
+      if (userData) {
+        setUserName(userData.nome);
+        setIdUser(userData.id);
+      } else {
+        alert("Usuário não encontrado.");
+      }
+    };
+  
+    const fetchAvaliacaoData = async () => {
+      if (idUser) {
+        const url = "/avaliacao/media/id";
+        const updatedUrl = url.replace("id", idUser);
+  
+        try {
+          const response = await Axios.get(updatedUrl);
+          setAvaliacao(response.data.mediaAvaliacoes);
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    };
+
+    const fetchCaronasData = async () =>{
+      if (idUser) {
+        const url = "/hist-caronas/user/id";
+        const updatedUrl = url.replace("id", idUser);
+        try {
+          const response = await Axios.get(updatedUrl);
+          const data = response.data;
+          const primeiraCarona = data[0]; 
+          const histcaronasFornecidas = primeiraCarona.caronasFornecidas;
+          const histcaronasPegas = primeiraCarona.caronasPegas;
+          setCaronasFornecidas(histcaronasFornecidas);
+          setCaronasPegas(histcaronasPegas);
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    }
+    
+    fetchUserData();
+    fetchAvaliacaoData();
+    fetchCaronasData();
+  }, [idUser]);
 
   return (
     <View style={{ height: "100%", width: "100%" }}>
       <View style={styles.container}>
-        <Image
-          source={require("../icons/foto.png")}
-          style={{
-            width: 180,
-            height: 180,
-            borderRadius: 90,
-            borderColor: "#FF2B2B",
-            borderWidth: 2,
-          }}
-        />
         <Text style={[styles.title, styles.textShadow]}>{nome}</Text>
         <View style={{ alignContent: "flex-start" }}>
           <View style={styles.info}>
@@ -75,7 +136,7 @@ const Perfil = () => {
             </View>
           </View>
         </View>
-        <TouchableOpacity style={styles.quit} onPress={handleSair}>
+        <TouchableOpacity style={styles.quit} onPress={handleLogout}>
           <Image
             source={require("../icons/sair.png")}
             style={{ width: 100, height: 45, marginTop: 20 }}
