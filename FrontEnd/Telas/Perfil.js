@@ -16,6 +16,7 @@ const Perfil = () => {
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem('user');
+      await AsyncStorage.removeItem('userVeiculo');
       alert("Usuário Deslogado com sucesso.");
       navigation.navigate('Inicial');
     } catch (error) {

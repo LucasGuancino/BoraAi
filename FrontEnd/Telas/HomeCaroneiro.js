@@ -41,11 +41,24 @@ const HomeCaroneiro = () => {
       }
     };
   
+    const fetchUserVeiculo = async () =>{
+      if (idUser){
+        const url = "/veiculo/id";
+        const updatedUrl = url.replace("id", idUser);
+        try{
+          const response = await Axios.get(updatedUrl);
+          const UserVeiculo  = response.data;
+          await AsyncStorage.setItem('userVeiculo', JSON.stringify(UserVeiculo));
+        }catch (error){
+          console.error(error);
+        }
+      }
+    }
+
     const fetchAvaliacaoData = async () => {
       if (idUser) {
         const url = "/avaliacao/media/id";
         const updatedUrl = url.replace("id", idUser);
-  
         try {
           const response = await Axios.get(updatedUrl);
           setAvaliacao(response.data.mediaAvaliacoes);
@@ -72,6 +85,7 @@ const HomeCaroneiro = () => {
     }
     
     fetchUserData();
+    fetchUserVeiculo();
     fetchAvaliacaoData();
     fetchCaronasData();
   }, [idUser]);

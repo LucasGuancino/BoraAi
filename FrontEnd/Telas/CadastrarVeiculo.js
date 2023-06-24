@@ -52,10 +52,10 @@ const CadastroScreen = () => {
       Axios.post("/veiculo", veiculo)
         .then((response) => {
           alert("Veiculo cadastrado com sucesso!");
-          navigation.goBack();
+          navigation.navigate('PainelCaroneiro')
         })
         .catch((error) => {
-          alert("Erro ao cadastrar veiculo!");
+          alert(error.response.data.message);
         });
       setNome('');
       setPlaca('');
