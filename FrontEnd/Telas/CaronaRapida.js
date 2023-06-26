@@ -1,19 +1,103 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import Footer from "../Comps/Footer";
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Axios from "../Comps/Axios";
 
 const logo = require("../icons/CaronaRapidaIcon.png");
 const iconLogo = require("../icons/localizacao.png");
 const Foto = require("../icons/foto.png");
 
-const App = () => {
-  const [isChecked, setIsChecked] = useState(false);
+const App = ({ route  }) => {
   const navigation = useNavigation();
-  
-  const handleCheckboxToggle = () => {
-    setIsChecked(!isChecked);
+  const { userIdCarona } = route.params;
+  const [caronaNome, setCaronaNome] = useState('');
+  const [location, setLocation] = useState('');
+  const [idUser, setIdUser] = useState('');
+  const [caronaId, setCaronaId] = useState('');
+  const [solicitanteId, setSolicitanteId] = useState('');
+
+  const getUserData = async () => {
+    try {
+      const userString = await AsyncStorage.getItem('user');
+      if (userString) {
+        const user = JSON.parse(userString);
+        return user;
+      }
+      return null;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }; 
+
+  const ConfirmarCarona = () => {
+    const carona = {
+      userId: idUser,
+    };
+    const url = `/carona/${caronaId}/confirmar/${solicitanteId}`;
+    Axios.post(url, carona)
+    .then((response) => {
+      alert("A Carona foi aceita! Agora é só combinar com o seu carona e ir para a UTFPR!!");
+      navigation.navigate('PainelCarona', { userIdCarona: idUser })
+    })
+    .catch((error) => {
+      alert(error.response.data.message);
+    });
   };
+
+  const CancelarCarona = () => {
+    const url = `/carona/${caronaId}/cancelar`;
+    Axios.post(url)
+    .then((response) => {
+      alert("A carona com este usuário foi cancelada, sua carona voltou a ficar disponivel.");
+      navigation.goBack();
+    })
+    .catch((error) => {
+      alert(error.response.data.message);
+    });
+  };
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const userData = await getUserData();
+      if (userData) {
+        setIdUser(userData.id);
+      } else {
+        alert("Usuário não encontrado.");
+      }
+    };
+    const fetchCarregarCarona = async() =>{
+        try{
+            const url = `/carona/pendentes/${userIdCarona}`;
+            const response = await Axios.get(url);
+            const carona = response.data[0];
+            setLocation(carona.end_origem);
+            setCaronaId(carona.id);
+            setSolicitanteId(carona.solicitanteId);
+        }catch (error){
+            console.error(error);
+        }
+    }
+    fetchUserData();
+    fetchCarregarCarona();
+    
+  }, [idUser, userIdCarona]);
+
+  useEffect(() =>{
+    const fetchCarregarCaroneiro = async() =>{
+      try{
+          const url = `/user/${solicitanteId}`;
+          const response = await Axios.get(url);
+          const user = response.data;
+          setCaronaNome(user.nome);
+      }catch (error){
+          console.error(error);
+      }
+    }
+    fetchCarregarCaroneiro();
+  }, [solicitanteId])
 
   return (
     <View style={styles.container}>
@@ -22,36 +106,19 @@ const App = () => {
         <Image style={styles.profileImage} source={Foto}/>
         </TouchableOpacity>
       </View>
-      <Text style={styles.headerText}>Carona para Luana</Text>
+      <Text style={styles.headerText}>Carona para {caronaNome}</Text>
       <Image style={styles.carImage} source={logo} />
 
       <Text style={styles.locationText}>Localização da Carona</Text>
       <View style={styles.locationContainer}>
         <Image style={styles.locationIcon} source={iconLogo} />
-        <Text style={styles.addressText}>Rua Antônio</Text>
+        <Text style={styles.addressText}>{location}</Text>
       </View>
-
-      <View style={styles.checkboxContainer}>
-        <TouchableOpacity style={styles.checkbox} onPress={handleCheckboxToggle}>
-          <View style={[styles.checkboxInner, isChecked && styles.checkboxChecked]} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleCheckboxToggle}>
-          <Text style={styles.checkboxText}>Utilizar localização atual de Luana</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Informe um ponto de encontro"
-        />
-      </View>
-
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('PainelCarona')}>
+      <TouchableOpacity style={styles.button} onPress={ConfirmarCarona}>
         <Text style={styles.buttonText}>Confirmar</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.cancelButton}>
+      <TouchableOpacity style={styles.cancelButton} onPress={CancelarCarona}>
         <Text style={styles.buttonText}>Cancelar</Text>
       </TouchableOpacity>
 

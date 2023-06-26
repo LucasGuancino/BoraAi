@@ -75,7 +75,7 @@ const HomeCarona = () => {
             <Text style={styles.descriptionText}>Em busca de uma carona para a UTFPR?</Text>
           </View>
           <Image source={logoIcon} style={styles.logo} />
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Procurar')}>
             <Text style={styles.buttonText}>Procurar</Text>
           </TouchableOpacity>
         </ScrollView>

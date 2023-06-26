@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,21 +8,83 @@ import {
   TextInput,
 } from "react-native";
 import Footer from "../Comps/Footer";
-import Checkbox from "expo-checkbox";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Axios from "../Comps/Axios";
+import { useNavigation } from '@react-navigation/native';
 
-const PedirCarona = () => {
-  const [caronaNome, setCaronaNome] = useState("Mara da Silva");
-  const [distance, setDistance] = useState("2");
-  const [curentLocation, setCurentLocation] = useState(false);
-  const [meetLocation, setCurentMeetLocation] = useState("");
-  const [userName, setCurentUserName] = useState("Luana");
-  const [location, setLocation] = useState(
-    "Av Mundial do Palmeiras , Zona Sul"
-  );
+const PedirCarona = ({ route  }) => {
+  const navigation = useNavigation();
+  const { userIdCarona } = route.params;
+  const [caronaNome, setCaronaNome] = useState('');
+  const [location, setLocation] = useState('');
+  const [idUser, setIdUser] = useState('');
+  const [caronaId, setCaronaId] = useState('');
 
   const handleCarona = () => {
-    console.log("pedir carona");
+    const carona = {
+      userId: idUser,
+    };
+    const url = `/carona/${caronaId}/pegar`;
+    Axios.post(url, carona)
+    .then((response) => {
+      alert("Solicitação de carona feita, assim que o caroneiro aceitar, ela aparecerá na tela de caronas em andamento.");
+      navigation.goBack();
+    })
+    .catch((error) => {
+      alert(error.response.data.message);
+    });
   };
+
+
+  const getUserData = async () => {
+    try {
+      const userString = await AsyncStorage.getItem('user');
+      if (userString) {
+        const user = JSON.parse(userString);
+        return user;
+      }
+      return null;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }; 
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const userData = await getUserData();
+      if (userData) {
+        setIdUser(userData.id);
+      } else {
+        alert("Usuário não encontrado.");
+      }
+    };
+    const fetchCarregarCarona = async() =>{
+        try{
+            const url = `/carona/ativa/${userIdCarona}`;
+            const response = await Axios.get(url);
+            const carona = response.data[0];
+            setLocation(carona.end_origem);
+            setCaronaId(carona.id);
+        }catch (error){
+            console.error(error);
+        }
+    }
+    const fetchCarregarCaroneiro = async() =>{
+        try{
+            const url = `/user/${userIdCarona}`;
+            const response = await Axios.get(url);
+            const user = response.data;
+            setCaronaNome(user.nome);
+        }catch (error){
+            console.error(error);
+        }
+    }
+
+    fetchUserData();
+    fetchCarregarCarona();
+    fetchCarregarCaroneiro();
+  }, [idUser, userIdCarona]);
 
   return (
     <View style={{ height: "100%", width: "100%" }}>
@@ -67,42 +129,8 @@ const PedirCarona = () => {
             source={require("../icons/localizacao.png")}
             style={{ width: 14, height: 20 }}
           />
-          <Text style={styles.textShadow}>{location}</Text>
+          <Text style={styles.textShadow}> {location}</Text>
         </View>
-        <Text
-          style={[
-            styles.textShadow,
-            { fontSize: 10, color: "#FF2B2B", marginTop: 5 },
-          ]}
-        >
-          Está a {distance}Km de você
-        </Text>
-        <View
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            gap: 15,
-            alignItems: "center",
-          }}
-        >
-          <Checkbox
-            style={{ marginTop: 10 }}
-            value={curentLocation}
-            onValueChange={setCurentLocation}
-          />
-          <Text style={[styles.textShadow, { marginTop: 10 }]}>
-            Usar localização atual de {userName}
-          </Text>
-        </View>
-
-        <TextInput
-          style={[styles.input, styles.shadow]}
-          placeholder="Informar um ponto de encontro"
-          value={meetLocation}
-          onChangeText={(v) => setMeetLocation(v)}
-          secureTextEntry={true}
-        />
-
         <TouchableOpacity
           style={[styles.button, styles.shadow]}
           onPress={handleCarona}
