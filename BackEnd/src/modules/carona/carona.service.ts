@@ -27,7 +27,9 @@ export class CaronaService {
     const caronasAtivas = await this.findActiveCaronas();
 
     if (caronasPendentes.length > 0 || caronasAtivas.length > 0) {
-      throw new Error('Você já possui uma carona ativa ou pendente.');
+      throw new NotFoundException(
+        'Você já possui uma carona ativa ou pendente.',
+      );
     }
 
     // Resto do código para criar a carona
@@ -126,7 +128,7 @@ export class CaronaService {
     });
 
     if (!carona) {
-      throw new Error('Carona not found');
+      throw new Error('Carona not foundi');
     }
 
     if (carona.ST_carona !== 'Ativa') {
@@ -224,6 +226,15 @@ export class CaronaService {
       where: {
         userIdCarona: userId,
         ST_carona: 'Pendente',
+      },
+    });
+  }
+
+  async findAtivasByUserId(userId: number) {
+    return this.prisma.carona.findMany({
+      where: {
+        userIdCarona: userId,
+        ST_carona: 'Ativa',
       },
     });
   }

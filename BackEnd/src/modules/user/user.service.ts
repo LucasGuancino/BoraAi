@@ -1,10 +1,29 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { UserDTO } from './user.dto';
 import { PrismaService } from 'src/database/PrismaService';
+import { error } from 'console';
 
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
+
+  async login(email: string, senha: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (user.senha !== senha) {
+      throw new Error('Incorrect password');
+    }
+
+    return user;
+  }
 
   async create(userData: UserDTO) {
     const userExists = await this.prisma.user.findFirst({
@@ -14,7 +33,7 @@ export class UserService {
     });
 
     if (userExists) {
-      throw new Error('User already exists');
+      throw new NotFoundException('User already exists');
     }
 
     if (userData.senha === userData.confirmarSenha) {
@@ -39,8 +58,22 @@ export class UserService {
 
       return newUser;
     } else {
-      throw new Error('Senha incorreta');
+      throw new Error('Incorrect password');
     }
+  }
+
+  async findById(id: number) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    return user;
   }
 
   async findAll() {
